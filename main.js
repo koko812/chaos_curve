@@ -1,5 +1,32 @@
+class QueueStack {
+    #stackPush = [];
+    #stackPop = [];
+
+    enqueue(value) {
+        this.#stackPush.push(value);
+    }
+
+    dequeue() {
+        if (this.#stackPop.length === 0) {
+            while (this.#stackPush.length > 0) {
+                this.#stackPop.push(this.#stackPush.pop());
+            }
+        }
+        return this.#stackPop.pop();
+    }
+}
+
+const queue = new QueueStack()
+queue.enqueue(10)
+queue.enqueue(20)
+queue.enqueue(40)
+for (let i = 0; i < 3; i++) {
+    console.log(queue.dequeue());
+}
+
 width = 600
 height = 600
+plotBatchSize = 1000
 
 canvas = null
 ctx = null
@@ -8,6 +35,7 @@ ctx = null
 let a, b, c, d, x, y
 let countMap = [];
 let totalCount = 0
+
 const generateConstant = () => {
     // 初期条件をスライダでいじれるなどしたら面白いと少し思った
     // が，スライダで弄れる粒度は粗そうなので，そこは要検討と思われる
@@ -36,7 +64,7 @@ const generateConstant = () => {
 const dispValue = (c, v) => {
     div = document.createElement('div')
     div.textContent = `${c} = ${v}`
-    div.id= `${c}`
+    div.id = `${c}`
     document.body.appendChild(div)
 }
 
@@ -61,7 +89,10 @@ const step = () => {
     const py = Math.floor(((y + 2) / 4) * height)
 
     countMap[py][px]++
-    totalCount=100000
+    totalCount++;
+    denseLimit = 100000
+
+    queue.enqueue([px,py])
 
     updateDivValue('a', a)
     updateDivValue('b', b)
@@ -86,9 +117,9 @@ const plot = () => {
     loopcnt = 0
     for (let i = 0; i < height; i++) {
         for (let j = 0; j < width; j++) {
-            const ratio = countMap[i][j] / totalCount * width
+            const ratio = countMap[i][j] / denseLimit * width
             if (ratio) {
-                k = 1 - (1-ratio)**100
+                k = 1 - (1 - ratio) ** 100
                 ctx.fillStyle = `rgba(255,255,255,${k}`
                 ctx.fillRect(j, i, 1, 1)
                 //console.log('object');
@@ -96,9 +127,17 @@ const plot = () => {
             }
         }
     }
-    console.log(loopcnt);
-    console.log(countMap.length);
-    console.log(countMap[0].length);
+    //console.log(loopcnt);
+    //console.log(countMap.length);
+    //console.log(countMap[0].length);
+
+    const limitOffset = 10000;
+    if(totalCount>limitOffset){
+        for(let i=0; i<denseLimit; i++){
+            removeXY = queue.dequeue()
+        }
+    }
+    
 }
 
 const init = () => {
@@ -118,7 +157,7 @@ window.onload = async () => {
     while (true) {
         // どうやらここの更新を 20 以下あたりにすると，重くなっていかれてくるっぽい
         await new Promise(r => setTimeout(r, 30))
-        for (let i = 0; i < 1000; i++) {
+        for (let i = 0; i < plotBatchSize; i++) {
             step()
         }
         plot()
