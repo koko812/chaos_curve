@@ -18,10 +18,6 @@ const generateConstant = () => {
     x = 0;
     y = 0;
 
-    dispValue('a', a)
-    dispValue('b', b)
-    dispValue('c', c)
-    dispValue('d', d)
 }
 
 const dispValue = (c,v) => {
@@ -36,6 +32,13 @@ const step = () => {
 
     x = nx;
     y = ny;
+
+    a+=0.00001
+
+    //dispValue('a', a)
+    //dispValue('b', b)
+    //dispValue('c', c)
+    //dispValue('d', d)
 }
 
 const plot = () => {
