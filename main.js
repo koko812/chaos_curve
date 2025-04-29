@@ -14,6 +14,10 @@ class QueueStack {
         }
         return this.#stackPop.pop();
     }
+
+    get_size() {
+        return this.#stackPop.length
+    }
 }
 
 const queue = new QueueStack()
@@ -92,7 +96,7 @@ const step = () => {
     totalCount++;
     denseLimit = 100000
 
-    queue.enqueue([px,py])
+    queue.enqueue([px, py])
 
     updateDivValue('a', a)
     updateDivValue('b', b)
@@ -132,12 +136,15 @@ const plot = () => {
     //console.log(countMap[0].length);
 
     const limitOffset = 10000;
-    if(totalCount>limitOffset){
-        for(let i=0; i<denseLimit; i++){
-            removeXY = queue.dequeue()
+    if (totalCount > limitOffset) {
+        for (let i = 0; i < plotBatchSize; i++) {
+            const a = queue.dequeue()
+            console.log(queue.get_size())
+            console.log(a[0], a[1]);
+            countMap[a[1]][a[0]]--;
         }
     }
-    
+
 }
 
 const init = () => {
@@ -156,7 +163,7 @@ window.onload = async () => {
     init()
     while (true) {
         // どうやらここの更新を 20 以下あたりにすると，重くなっていかれてくるっぽい
-        await new Promise(r => setTimeout(r, 30))
+        await new Promise(r => setTimeout(r, 250))
         for (let i = 0; i < plotBatchSize; i++) {
             step()
         }
