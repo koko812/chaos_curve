@@ -1,11 +1,13 @@
-width = 300
-height = 300
+width = 600
+height = 600
 
 canvas = null
 ctx = null
 //xn+1 = sin(a yn) - cos(b xn)
 //yn+1 = sin(c xn) - cos(d yn)
 let a, b, c, d, x, y
+let countMap = [];
+let totalCount = 0
 const generateConstant = () => {
     // 初期条件をスライダでいじれるなどしたら面白いと少し思った
     // が，スライダで弄れる粒度は粗そうなので，そこは要検討と思われる
@@ -18,12 +20,29 @@ const generateConstant = () => {
     x = 0;
     y = 0;
 
+    for (let i = 0; i < height + 1; i++) {
+        countMap[i] = []
+        for (let j = 0; j < width + 1; j++) {
+            countMap[i][j] = 0
+        }
+    }
+
+    dispValue('a', a)
+    dispValue('b', b)
+    dispValue('c', c)
+    dispValue('d', d)
 }
 
-const dispValue = (c,v) => {
-    div = document.createElement('div') 
+const dispValue = (c, v) => {
+    div = document.createElement('div')
     div.textContent = `${c} = ${v}`
+    div.id= `${c}`
     document.body.appendChild(div)
+}
+
+const updateDivValue = (c, v) => {
+    div = document.getElementById(`${c}`)
+    div.textContent = `${c} = ${v}`
 }
 
 const step = () => {
@@ -33,19 +52,29 @@ const step = () => {
     x = nx;
     y = ny;
 
-    a+=0.00001
+    a += 0.000001
+    b += 0.000001
+    c += 0.000002
+    d += 0.000005
 
-    //dispValue('a', a)
-    //dispValue('b', b)
-    //dispValue('c', c)
-    //dispValue('d', d)
+    const px = Math.floor(((x + 2) / 4) * width)
+    const py = Math.floor(((y + 2) / 4) * height)
+
+    countMap[py][px]++
+    totalCount=100000
+
+    updateDivValue('a', a)
+    updateDivValue('b', b)
+    updateDivValue('c', c)
+    updateDivValue('d', d)
 }
 
 const plot = () => {
+    let loopcnt;
+    ctx.fillStyle = '#000'
+    ctx.fillRect(0, 0, width, height)
     // まあ，なんでこんな単純そうな関数で，あんなバリエーションのプロットがでてくるのかという，
     // 当たり前すぎる感想を残しておこう
-    const px = Math.floor(((x + 2) / 4) * width)
-    const py = Math.floor(((y + 2) / 4) * height)
 
     // 白一色だちょっと寂しいので，いろんな色が出るようにしたいところ
     // 自己相似のある図形も書いていきたい，シェルビンスキーのガスケット？？
@@ -54,8 +83,22 @@ const plot = () => {
     // （まあそれは普通のカオスでも同じか）
     // 前に借りた，グラフィックスプログラミングや，processing によるジェネラティブ・アートやらも，
     // どんどんパクっていきたいと考えている
-    ctx.fillStyle = '#fff'
-    ctx.fillRect(px, py, 1, 1)
+    loopcnt = 0
+    for (let i = 0; i < height; i++) {
+        for (let j = 0; j < width; j++) {
+            const ratio = countMap[i][j] / totalCount * width
+            if (ratio) {
+                k = 1 - (1-ratio)**100
+                ctx.fillStyle = `rgba(255,255,255,${k}`
+                ctx.fillRect(j, i, 1, 1)
+                //console.log('object');
+                loopcnt += 1
+            }
+        }
+    }
+    console.log(loopcnt);
+    console.log(countMap.length);
+    console.log(countMap[0].length);
 }
 
 const init = () => {
@@ -73,10 +116,11 @@ const init = () => {
 window.onload = async () => {
     init()
     while (true) {
-        await new Promise(r => setTimeout(r, 10))
-        for (let i = 0; i < 100; i++) {
+        // どうやらここの更新を 20 以下あたりにすると，重くなっていかれてくるっぽい
+        await new Promise(r => setTimeout(r, 30))
+        for (let i = 0; i < 1000; i++) {
             step()
-            plot()
         }
+        plot()
     }
 }
